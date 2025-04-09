@@ -2,14 +2,14 @@
 // ✅ Core Dependencies
 // --------------------------------------------
 import csrf from "csurf"; // CSRF protection
-import express from "express"; // Core Express framework
 import cors from "cors"; // Cross-Origin support
 import helmet from "helmet"; // Secure HTTP headers
-import dotenv from "dotenv"; // Loads env variables from .env
+import express from "express"; // Core Express framework
 import cookieParser from "cookie-parser"; // Parses cookies
+import dotenv from "dotenv"; // Loads env variables from .env
+import compression from "compression"; // Compresses HTTP responses
 import useragent from "express-useragent"; // Parses user-agent string
 import mongoSanitize from "express-mongo-sanitize"; // Protects against NoSQL injection
-import compression from "compression"; // Compresses HTTP responses
 
 // --------------------------------------------
 // ✅ Local Modules (Database, Routes, Middleware)
@@ -129,4 +129,4 @@ app.use(handleError);
 // --------------------------------------------
 export { app, port, isProduction };
 
-// is that performance optimization, efficiency, maintainability, readability and security
+//performance optimization, efficiency, maintainability, readability and security
