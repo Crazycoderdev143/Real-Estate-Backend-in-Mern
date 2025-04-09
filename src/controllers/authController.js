@@ -188,7 +188,7 @@ export const login = async (req, res, next) => {
         }
         // Generate a JWT
         const token = createTokenForUser(user);
-        await recordFailedAttempt(usernameOrEmail);
+        await resetFailedAttempts(usernameOrEmail);
 
         res.cookie("access_token", `Bearer ${token}`, {
             httpOnly: true,

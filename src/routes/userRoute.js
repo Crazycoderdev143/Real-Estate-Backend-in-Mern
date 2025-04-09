@@ -36,13 +36,13 @@ router.put('/updateprofile/:userId', authMiddleware, isUser, uploadProfileImage,
 router.get('/property/:propertyId', getProperty);
 
 // Route add comment at Property
-router.post('/property/comment/:userId', rateLimiter(), authMiddleware, isUser, addComment);
+router.post('/property/comment/:userId', authMiddleware, isUser, addComment);
 
 // Route get all comment of Property
 router.get('/property/comment/:propertyId', getAllComment);
 
 // Route for contact anyone
-router.post('/contact', rateLimiter(), contact);
+router.post('/contact', contact);
 
 //Route for add item to cart
 router.post("/addtocart/:userId", authMiddleware, isUser, addToCart);

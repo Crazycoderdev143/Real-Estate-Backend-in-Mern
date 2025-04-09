@@ -1,5 +1,5 @@
 import { handleError } from '../middlewares/errorHandler.js';
-// import redisClient from '../services/redisClient.js';
+import redisClient from '../services/redisClient.js';
 import FCMToken from '../models/FCMTokenModel.js';
 import CartItem from '../models/cartItemModel.js';
 import Property from "../models/propertyModel.js";
@@ -13,24 +13,24 @@ import mongoose from 'mongoose';
 // Get all properties (with Redis caching)
 export const getAllProperties = async (req, res, next) => {
     try {
-        // const cacheKey = 'properties:all';
-        // const cachedProperties = await redisClient.get(cacheKey);
+        const cacheKey = 'properties:all';
+        const cachedProperties = await redisClient.get(cacheKey);
 
-        // if (cachedProperties) {
-        //     return res.status(200).json({
-        //         message: "All Properties fetched successfully (from cache).",
-        //         success: true,
-        //         properties: JSON.parse(cachedProperties)
-        //     });
-        // }
+        if (cachedProperties) {
+            return res.status(200).json({
+                message: "All Properties fetched successfully (from cache).",
+                success: true,
+                properties: JSON.parse(cachedProperties)
+            });
+        }
 
         const properties = await Property.find();
         if (!properties.length) {
             return res.status(404).json({ message: "No properties found.", success: false });
         }
 
-        // // Store in cache for 30 minutes
-        // await redisClient.setex(cacheKey, 60 * 30, JSON.stringify(properties));
+        // Store in cache for 30 minutes
+        await redisClient.setex(cacheKey, 60 * 30, JSON.stringify(properties));
 
         res.status(200).json({
             message: "All Properties fetched successfully.",
@@ -54,24 +54,24 @@ export const getProperty = async (req, res, next) => {
             return res.status(400).json({ message: 'Invalid Property ID format.', success: false });
         }
 
-        // const cacheKey = `property:${propertyId}`;
-        // const cachedProperty = await redisClient.get(cacheKey);
+        const cacheKey = `property:${propertyId}`;
+        const cachedProperty = await redisClient.get(cacheKey);
 
-        // if (cachedProperty) {
-        //     return res.status(200).json({
-        //         message: "Property fetched successfully (from cache).",
-        //         success: true,
-        //         property: JSON.parse(cachedProperty)
-        //     });
-        // }
+        if (cachedProperty) {
+            return res.status(200).json({
+                message: "Property fetched successfully (from cache).",
+                success: true,
+                property: JSON.parse(cachedProperty)
+            });
+        }
 
         const property = await Property.findById(propertyId);
         if (!property) {
             return res.status(404).json({ message: "Property not found.", success: false });
         }
 
-        // // Store in cache for 30 minutes
-        // await redisClient.setex(cacheKey, 60 * 30, JSON.stringify(property));
+        // Store in cache for 30 minutes
+        await redisClient.setex(cacheKey, 60 * 30, JSON.stringify(property));
 
         res.status(200).json({
             message: "Property fetched successfully.",
@@ -104,8 +104,8 @@ export const addComment = async (req, res, next) => {
 
         const comment = await newComment.save();
 
-        // // Invalidate cached comments for this property
-        // await redisClient.del(`comments:${propertyId}`);
+        // Invalidate cached comments for this property
+        await redisClient.del(`comments:${propertyId}`);
 
         res.status(200).json({
             message: "Commented successfully.",
@@ -129,24 +129,25 @@ export const getAllComment = async (req, res, next) => {
             return res.status(400).json({ message: 'Invalid Property ID.', success: false });
         }
 
-        // const cacheKey = `comments:${propertyId}`;
-        // const cachedComments = await redisClient.get(cacheKey);
+        const cacheKey = `comments:${propertyId}`;
+        const cachedComments = await redisClient.get(cacheKey);
 
-        // if (cachedComments) {
-        //     return res.status(200).json({
-        //         message: "All comments fetched successfully (from cache).",
-        //         success: true,
-        //         comments: JSON.parse(cachedComments)
-        //     });
-        // }
+        if (cachedComments) {
+            return res.status(200).json({
+                message: "All comments fetched successfully (from cache).",
+                success: true,
+                comments: JSON.parse(cachedComments)
+            });
+        }
 
         const comments = await Comment.find({ propertyRef: propertyId });
         if (!comments.length) {
+            console.log("run")
             return res.status(404).json({ message: "No comments found.", success: false });
         }
 
-        // // Store in cache for 30 minutes
-        // await redisClient.setex(cacheKey, 60 * 30, JSON.stringify(comments));
+        // Store in cache for 30 minutes
+        await redisClient.setex(cacheKey, 60 * 30, JSON.stringify(comments));
 
         res.status(200).json({
             message: "All comments fetched successfully.",
