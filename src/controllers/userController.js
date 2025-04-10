@@ -2,7 +2,7 @@ import { handleError } from '../middlewares/errorHandler.js';
 import redisClient from '../services/redisClient.js';
 import FCMToken from '../models/FCMTokenModel.js';
 import CartItem from '../models/cartItemModel.js';
-import Property from "../models/propertyModel.js";
+import Property from "../models/PropertyModel.js";
 import Feedback from "../models/FeedbackModel.js";
 import Contact from '../models/contactModel.js';
 import Comment from "../models/commentModel.js";
