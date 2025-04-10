@@ -110,6 +110,8 @@ const csrfProtection = isProduction
 // ✅ API Routes
 // --------------------------------------------
 
+app.head('/', (req, res) => res.status(200).end());
+
 // Public user routes (with CSRF)
 app.use("/api/user", csrfProtection, userRoute);
 
