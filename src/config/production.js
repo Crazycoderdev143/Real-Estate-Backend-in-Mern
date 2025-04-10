@@ -1,4 +1,7 @@
 import defaultConfig from "./default.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const prodConfig = {
     ...defaultConfig,
@@ -18,4 +21,5 @@ const prodConfig = {
     debugMode: false,
 };
 
+console.log("prod",prodConfig.database.uri)
 export default prodConfig;
