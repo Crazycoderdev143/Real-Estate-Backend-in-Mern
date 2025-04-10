@@ -6,7 +6,7 @@ import Notification from '../models/notificationModel.js';
 import redisClient from '../services/redisClient.js';
 import FCMToken from '../models/FCMTokenModel.js';
 import Feedback from '../models/FeedbackModel.js';
-import Property from "../models/propertyModel.js";
+import Property from "../models/PropertyModel.js";
 import Comment from "../models/commentModel.js";
 import Contact from "../models/contactModel.js";
 import User from "../models/userModel.js";

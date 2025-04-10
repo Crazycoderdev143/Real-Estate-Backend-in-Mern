@@ -1,8 +1,8 @@
 import { triggerPropertyNotification } from "../utils/sendFCMNotification.js"
 import { uploadMultipleImagesOnCloudinary } from "../services/cloudinary.js";
 import { handleError } from "../middlewares/errorHandler.js";
-// import redisClient from '../services/redisClient.js';
-import Property from "../models/propertyModel.js";
+import redisClient from '../services/redisClient.js';
+import Property from "../models/PropertyModel.js";
 import Contact from "../models/contactModel.js";
 import mongoose from 'mongoose';
 
@@ -126,7 +126,7 @@ export const getAllContact = async (req, res, next) => {
             });
         }
 
-        // await redisClient.setex("contacts", 3600, JSON.stringify(contacts));
+        await redisClient.setex("contacts", 3600, JSON.stringify(contacts));
 
         res.status(200).json({
             message: "All Contacts fetched successfully.",
@@ -170,7 +170,7 @@ export const getContact = async (req, res, next) => {
             });
         }
 
-        // await redisClient.setex(`contact:${contactId}`, 3600, JSON.stringify(contact));
+        await redisClient.setex(`contact:${contactId}`, 3600, JSON.stringify(contact));
 
         res.status(200).json({
             message: "Contact fetched successfully.",
