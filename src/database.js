@@ -11,8 +11,6 @@ const config = ENV === "production" ? productionConfig : developmentConfig;
 async function connectToDatabase() {
     const { uri, host, port, name, username, password } = config.database;
 
-    console.log("config.database", config.database)
-
     // Use URI if provided (usually in production)
     const connectionString = uri || (
         username && password

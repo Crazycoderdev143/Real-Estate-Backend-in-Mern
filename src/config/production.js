@@ -21,5 +21,4 @@ const prodConfig = {
     debugMode: false,
 };
 
-console.log("prod",prodConfig.database.uri)
 export default prodConfig;
