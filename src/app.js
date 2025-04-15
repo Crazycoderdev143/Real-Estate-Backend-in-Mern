@@ -74,7 +74,7 @@ app.use(requestLogger);
 // ✅ CORS Configuration
 // --------------------------------------------
 app.use(cors({
-    origin: isProduction ? process.env.FRONTEND_URL : "http://localhost:5173",
+    origin: isProduction ?[ process.env.FRONTEND_URL,"https://mern-real-estate-c10c6.firebaseapp.com"] : "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // Allow cookies and credentials
 }));
