@@ -1,4 +1,4 @@
-import { genOtpForRegistration, verifyOtpAndRegistration, login, forgetPassword, resetPassword, deleteAccount, updateProfile } from "../controllers/authController.js";
+import { genOtpForRegistration, verifyOtpAndRegistration, login, forgetPassword, resetPassword, deleteAccount, updateProfile, signUpUserWithGoogle } from "../controllers/authController.js";
 import { getAllProperties, getProperty, addComment, getAllComment, contact, addToCart, getCartItems, removeFromCart, registerFCMToken, searchProperties, getAgents, feedback } from "../controllers/userController.js";
 import { signupValidation, loginValidation, updateValidation, handleValidationErrors } from "../middlewares/validation.js"
 import { rateLimiter } from '../middlewares/rateLimiterMiddleware.js';
@@ -16,6 +16,9 @@ router.post("/gen-otp", signupValidation, loginLimiter, rateLimiter(), handleVal
 
 // Route for verify otp and save user in database
 router.post("/verify-registration", signupValidation, rateLimiter(), handleValidationErrors, verifyOtpAndRegistration);
+
+// Route for generate otp for verify user to registration
+router.post("/registrationwithgoogle", loginLimiter, signUpUserWithGoogle);
 
 // Route for user login
 router.post("/login", loginValidation, loginLimiter, rateLimiter(), handleValidationErrors, login);

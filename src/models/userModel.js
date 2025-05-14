@@ -49,7 +49,6 @@ const UserSchema = new Schema(
         },
         phone: {
             type: String,
-            required: true,
             validate: {
                 validator: (v) => /^[0-9]{10}$/.test(v),
                 message: "Phone number must be 10 digits",

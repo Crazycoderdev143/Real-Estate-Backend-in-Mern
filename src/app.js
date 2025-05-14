@@ -74,7 +74,7 @@ app.use(requestLogger);
 // ✅ CORS Configuration
 // --------------------------------------------
 app.use(cors({
-    origin: isProduction ? [process.env.FRONTEND_URL, "https://mern-real-estate-c10c6.firebaseapp.com"] : "http://localhost:5173",
+    origin: isProduction ? [process.env.FRONTEND_URL, "https://mern-real-estate-c10c6.firebaseapp.com/"] : ["http://localhost:5173", "https://mern-real-estate-c10c6.firebaseapp.com/"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // Allow cookies and credentials
 }));
@@ -83,6 +83,7 @@ app.use(cors({
 // ✅ Secure HTTP Headers (Helmet)
 // --------------------------------------------
 app.use(helmet({
+    crossOriginOpenerPolicy: false,
     contentSecurityPolicy: isProduction
         ? {
             directives: {
