@@ -160,67 +160,7 @@ export const verifyOtpAndRegistration = async (req, res, next) => {
 //     }
 // };
 
-// // //user signUp with google accounts
-// export const signUpUserWithGoogle = async (req, res, next) => {
-//     try {
-//         const { tokenId, role = "User" } = req.body;
-
-//         const { tokens } = await oauth2client.getToken(tokenId);
-//         oauth2client.setCredentials(tokens);
-
-//         const userRes = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`);
-//         const data = await userRes.json();
-
-//         const { email, name, picture, id } = data;
-
-//         // Check if user already exists
-//         const existingUser = await User.findOne({ email });
-//         if (existingUser) {
-//             return res.status(409).json({
-//                 message: "Email already exists.",
-//                 success: false,
-//             });
-//         }
-
-//         if (!["User", "Agent", "Admin"].includes(role)) {
-//             return res.status(400).json({ message: 'Invalid role specified.' });
-//         }
-//         const username = name.replace(/\s+/g, '').toLowerCase() + "_" + id.slice(0,4);
-//         const hassedPassword = await bcrypt.hash(id, 12)
-
-//         const newUser = new User({
-//             username,
-//             email,
-//             password: hassedPassword, // No password since it's a Google sign-up
-//             profileImage: picture,
-//             role,
-//             phone: "0000000000", // Optional: update later
-//             isGoogleAccount: true
-//         });
-
-//         const user = await newUser.save();
-//         const token = createTokenForUser(user);
-
-//         res.cookie("access_token", `Bearer ${token}`, {
-//             httpOnly: true,
-//             secure: process.env.NODE_ENV === 'production',
-//             sameSite: "strict",
-//         }).status(201).json({
-//             message: "User created successfully via Google.",
-//             access_token: `Bearer ${token}`,
-//             user_info: user,
-//             success: true
-//         });
-
-//     } catch (error) {
-//         if (!res.headersSent) {
-//             return handleError(req, res, error);
-//         }
-//         next(error);
-//     }
-// };
-
-
+// //user signUp with google accounts
 export const signUpUserWithGoogle = async (req, res, next) => {
     try {
         const { tokenId, role = "User" } = req.body;
@@ -228,53 +168,113 @@ export const signUpUserWithGoogle = async (req, res, next) => {
         const { tokens } = await oauth2client.getToken(tokenId);
         oauth2client.setCredentials(tokens);
 
-        const userRes = await fetch(
-            `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`
-        );
+        const userRes = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`);
         const data = await userRes.json();
 
         const { email, name, picture, id } = data;
 
-        let user = await User.findOne({ email });
-        if (!user) {
-            if (!["User", "Agent", "Admin"].includes(role)) {
-                return res.status(400).json({ message: 'Invalid role specified.' });
-            }
-
-            const username = name.replace(/\s+/g, '').toLowerCase() + "_" + id.slice(0, 4);
-            const hashedPassword = await bcrypt.hash(id, 12);
-
-            user = await User.create({
-                username,
-                email,
-                password: hashedPassword,
-                profileImage: picture,
-                role,
-                phone: "0000000000",
-                isGoogleAccount: true,
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({
+                message: "Email already exists.",
+                success: false,
             });
         }
 
+        if (!["User", "Agent", "Admin"].includes(role)) {
+            return res.status(400).json({ message: 'Invalid role specified.' });
+        }
+        const username = name.replace(/\s+/g, '').toLowerCase() + "_" + id.slice(0,4);
+        const hassedPassword = await bcrypt.hash(id, 12)
+
+        const newUser = new User({
+            username,
+            email,
+            password: hassedPassword, // No password since it's a Google sign-up
+            profileImage: picture,
+            role,
+            phone: "0000000000", // Optional: update later
+            isGoogleAccount: true
+        });
+
+        const user = await newUser.save();
         const token = createTokenForUser(user);
 
-        res
-            .cookie("access_token", `Bearer ${token}`, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: "Strict",
-            })
-            .status(200)
-            .json({
-                message: "Google sign-in successful.",
-                access_token: `Bearer ${token}`,
-                user_info: user,
-                success: true,
-            });
+        res.cookie("access_token", `Bearer ${token}`, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+        }).status(201).json({
+            message: "User created successfully via Google.",
+            access_token: `Bearer ${token}`,
+            user_info: user,
+            success: true
+        });
+
     } catch (error) {
-        if (!res.headersSent) return handleError(req, res, error);
+        if (!res.headersSent) {
+            return handleError(req, res, error);
+        }
         next(error);
     }
-  };
+};
+
+
+// export const signUpUserWithGoogle = async (req, res, next) => {
+//     try {
+//         const { tokenId, role = "User" } = req.body;
+
+//         const { tokens } = await oauth2client.getToken(tokenId);
+//         oauth2client.setCredentials(tokens);
+
+//         const userRes = await fetch(
+//             `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`
+//         );
+//         const data = await userRes.json();
+
+//         const { email, name, picture, id } = data;
+
+//         let user = await User.findOne({ email });
+//         if (!user) {
+//             if (!["User", "Agent", "Admin"].includes(role)) {
+//                 return res.status(400).json({ message: 'Invalid role specified.' });
+//             }
+
+//             const username = name.replace(/\s+/g, '').toLowerCase() + "_" + id.slice(0, 4);
+//             const hashedPassword = await bcrypt.hash(id, 12);
+
+//             user = await User.create({
+//                 username,
+//                 email,
+//                 password: hashedPassword,
+//                 profileImage: picture,
+//                 role,
+//                 phone: "0000000000",
+//                 isGoogleAccount: true,
+//             });
+//         }
+
+//         const token = createTokenForUser(user);
+
+//         res
+//             .cookie("access_token", `Bearer ${token}`, {
+//                 httpOnly: true,
+//                 secure: process.env.NODE_ENV === 'production',
+//                 sameSite: "Strict",
+//             })
+//             .status(200)
+//             .json({
+//                 message: "Google sign-in successful.",
+//                 access_token: `Bearer ${token}`,
+//                 user_info: user,
+//                 success: true,
+//             });
+//     } catch (error) {
+//         if (!res.headersSent) return handleError(req, res, error);
+//         next(error);
+//     }
+//   };
 
 // user Login
 export const login = async (req, res, next) => {
