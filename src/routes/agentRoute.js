@@ -11,15 +11,6 @@ import express from "express";
 const router = express.Router();
 
 
-// // Route for admin login
-// router.post("/login", loginValidation, login);
-
-// // Route for admin forget password by sending mail
-// router.post("/forget-password", forgetPassword);
-
-// // Route for admin reset password by verify resetToken
-// router.put('/reset-password/:resetToken', resetPassword);
-
 // Route for admin delete your account
 router.delete('/deleteaccount', deleteAccount);
 
