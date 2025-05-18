@@ -1,4 +1,4 @@
-import { genOtpForRegistration, verifyOtpAndRegistration, login, forgetPassword, resetPassword, deleteAccount, updateProfile } from "../controllers/authController.js";
+import { genOtpForRegistration, verifyOtpAndRegistration, signUpUserWithGoogle, login, forgetPassword, resetPassword, deleteAccount, updateProfile } from "../controllers/authController.js";
 import { getAllProperties, getProperty, addComment, getAllComment, contact, addToCart, getCartItems, removeFromCart, registerFCMToken, searchProperties, getAgents, feedback } from "../controllers/userController.js";
 import { signupValidation, loginValidation, updateValidation, handleValidationErrors } from "../middlewares/validation.js"
 import { rateLimiter } from '../middlewares/rateLimiterMiddleware.js';
@@ -11,6 +11,12 @@ import express from "express";
 
 const router = express.Router();
 
+
+// Route for send csrf-token to client
+router.get("/csrf-token", (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+});
+
 // Route for generate otp for verify user to registration
 router.post("/gen-otp", signupValidation, loginLimiter, rateLimiter(), handleValidationErrors, genOtpForRegistration);
 
@@ -19,6 +25,9 @@ router.post("/verify-registration", signupValidation, rateLimiter(), handleValid
 
 // Route for user login
 router.post("/login", loginValidation, loginLimiter, rateLimiter(), handleValidationErrors, login);
+
+// Route for user login
+router.post("/googlesignup", loginLimiter, signUpUserWithGoogle);
 
 // Route for user forget password by sending mail
 router.post("/forget-password", loginLimiter, rateLimiter(), forgetPassword);

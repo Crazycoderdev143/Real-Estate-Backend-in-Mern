@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
+const isProduction = process.env.NODE_ENV === "production";
 
 // Genrate OTP for Registration Route
 export const genOtpForRegistration = async (req, res, next) => {
@@ -89,8 +90,9 @@ export const verifyOtpAndRegistration = async (req, res, next) => {
 
         res.cookie("access_token", `Bearer ${token}`, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            secure: isProduction,
+            sameSite: isProduction ? "Strict" : "Lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         }).status(201).json({
             message: "User Created Successfully.",
             access_token: `Bearer ${token}`,
@@ -108,7 +110,7 @@ export const verifyOtpAndRegistration = async (req, res, next) => {
 //user signUp with google accounts
 export const signUpUserWithGoogle = async (req, res, next) => {
     try {
-        const { username, email, password, role, phone } = req.body;
+        const { username, email, password, role, phone, profileImage } = req.body;
 
         // Check if the email already exists
         const existingEmail = await User.findOne({ email });
@@ -130,14 +132,6 @@ export const signUpUserWithGoogle = async (req, res, next) => {
         // Hash the password (async version)
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Handle profile image upload (using multer)
-        let profileImage;
-        if (req.file) {
-            // The profile image upload on cloudinary
-            const uploadResult = await uploadSingleImageOnCloudinary(req.file.path)
-            profileImage = uploadResult.url; // Save the file url in the user profile
-        }
-
         // Create a new user
         const newUser = new User({ username, email, password: hashedPassword, profileImage, role, phone });
 
@@ -146,10 +140,19 @@ export const signUpUserWithGoogle = async (req, res, next) => {
         }
         const user = await newUser.save(); // Save to the database
 
-        res.status(201).json({
-            message: "Otp sent Successfully.",
-            success: true,
-            user
+        // Generate a JWT
+        const token = createTokenForUser(user);
+
+        res.cookie("access_token", `Bearer ${token}`, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "Strict" : "Lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        }).status(201).json({
+            message: "User Created Successfully.",
+            access_token: `Bearer ${token}`,
+            user_info: user,
+            success: true
         });
     } catch (error) {
         if (!res.headersSent) {
@@ -192,8 +195,9 @@ export const login = async (req, res, next) => {
 
         res.cookie("access_token", `Bearer ${token}`, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            secure: isProduction,
+            sameSite: isProduction ? "Strict" : "Lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         }).status(200).json({
             message: "Login Successfully.",
             access_token: `Bearer ${token}`,
@@ -388,8 +392,9 @@ export const updateProfile = async (req, res, next) => {
 
         res.cookie("access_token", `Bearer ${token}`, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            secure: isProduction,
+            sameSite: isProduction ? "Strict" : "Lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         }).status(200).json({
             message: "Profile updated successfully.",
             access_token: `Bearer ${token}`,

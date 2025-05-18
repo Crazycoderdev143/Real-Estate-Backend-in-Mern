@@ -74,7 +74,7 @@ app.use(requestLogger);
 // ✅ CORS Configuration
 // --------------------------------------------
 app.use(cors({
-    origin: isProduction ? [process.env.FRONTEND_URL, "https://mern-real-estate-c10c6.firebaseapp.com"] : "http://localhost:5173",
+    origin: isProduction ? [process.env.FRONTEND_URL, "https://mern-real-estate-c10c6.firebaseapp.com"] : ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // Allow cookies and credentials
 }));
@@ -102,9 +102,10 @@ app.use(helmet({
 // --------------------------------------------
 // ✅ CSRF Protection (enabled in production only)
 // --------------------------------------------
-const csrfProtection = isProduction
-    ? csrf({ cookie: true })
-    : (req, res, next) => next(); // No-op in dev to avoid setup issues
+const csrfProtection = true //isProduction
+    ? csrf({ cookie: { httpOnly: true, sameSite: "strict", secure: true } })
+    : (req, res, next) => next(); // Disabled in dev for testing
+
 
 // --------------------------------------------
 // ✅ API Routes
