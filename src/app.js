@@ -1,18 +1,18 @@
 // --------------------------------------------
 // ✅ Core Dependencies
 // --------------------------------------------
-import csrf from "csurf"; // CSRF protection
-import cors from "cors"; // Cross-Origin support
-import helmet from "helmet"; // Secure HTTP headers
-import express from "express"; // Core Express framework
-import cookieParser from "cookie-parser"; // Parses cookies
-import dotenv from "dotenv"; // Loads env variables from .env
-import compression from "compression"; // Compresses HTTP responses
-import useragent from "express-useragent"; // Parses user-agent string
-import mongoSanitize from "express-mongo-sanitize"; // Protects against NoSQL injection
+import express from "express";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import cors from "cors";
+import csrf from "csurf";
+import compression from "compression";
+import mongoSanitize from "express-mongo-sanitize";
+import useragent from "express-useragent";
 
 // --------------------------------------------
-// ✅ Local Modules (Database, Routes, Middleware)
+// ✅ Local Modules
 // --------------------------------------------
 import connectToDatabase from "./database.js";
 import userRoute from "./routes/userRoute.js";
@@ -28,15 +28,21 @@ import requestLogger from "./middlewares/requestLoggerMiddleware.js";
 // --------------------------------------------
 // ✅ Environment Setup
 // --------------------------------------------
-dotenv.config(); // Load env vars from .env
+dotenv.config();
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 8000;
+
+if (isProduction && !process.env.FRONTEND_URL) {
+    throw new Error("FRONTEND_URL must be defined in production.");
+}
 
 // --------------------------------------------
 // ✅ Initialize Express App
 // --------------------------------------------
 const app = express();
-app.set("trust proxy", isProduction ? 1 : 0); // Trust proxy if behind Nginx/Heroku
+
+// Trust first proxy in production (needed for secure cookies, HTTPS)
+app.set("trust proxy", isProduction ? 1 : 0);
 
 // --------------------------------------------
 // ✅ Connect to MongoDB
@@ -44,92 +50,121 @@ app.set("trust proxy", isProduction ? 1 : 0); // Trust proxy if behind Nginx/Her
 connectToDatabase();
 
 // --------------------------------------------
-// ✅ Security & Performance Middleware
+// ✅ General Middleware Setup
 // --------------------------------------------
 
-// Prevent NoSQL injection via payload/query
+// Sanitize inputs to prevent NoSQL injection attacks
 app.use(mongoSanitize());
 
-// JSON and URL-encoded body parsing
+// Parse JSON and URL-encoded request bodies (with size limit)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Global rate limiter to prevent abuse
+// Apply global rate limiter to protect against abuse and DoS
 app.use(globalLimiter);
 
-// Parses cookies (used for auth & CSRF tokens)
+// Parse cookies (needed for auth and CSRF)
 app.use(cookieParser());
 
-// Device and browser info middleware
+// Extract user agent and device info
 app.use(useragent.express());
-app.use(deviceInfoMiddleware);
+app.use(deviceInfoMiddleware());
 
-// Response compression for faster performance
+// Compress all responses for better performance
 app.use(compression());
 
-// Custom structured request logger
+// Log structured request metadata
 app.use(requestLogger);
 
 // --------------------------------------------
-// ✅ CORS Configuration
+// ✅ CORS Setup
+// Allows secure cross-origin requests (cookies, headers)
 // --------------------------------------------
 app.use(cors({
-    origin: isProduction ? [process.env.FRONTEND_URL, "https://mern-real-estate-c10c6.firebaseapp.com"] : ["http://localhost:5173"],
+    origin: isProduction
+        ? [process.env.FRONTEND_URL, "https://real-estate-frontend-in-mern.onrender.com"]
+        : ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // Allow cookies and credentials
+    credentials: true, // Allow cookies and headers across origins
 }));
 
 // --------------------------------------------
-// ✅ Secure HTTP Headers (Helmet)
+// ✅ Helmet Security Headers
+// Adds protection against XSS, clickjacking, etc.
 // --------------------------------------------
 app.use(helmet({
     contentSecurityPolicy: isProduction
         ? {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'", "https://trusted-cdn.com"],
-                styleSrc: ["'self'", "https://trusted-cdn.com"],
+                scriptSrc: [
+                    "'self'",
+                    "https://trusted-cdn.com",
+                    "https://accounts.google.com",
+                    "https://apis.google.com"
+                ],
+                styleSrc: [
+                    "'self'",
+                    "https://trusted-cdn.com",
+                    "https://fonts.googleapis.com"
+                ],
+                fontSrc: ["'self'", "https://fonts.gstatic.com"],
+                objectSrc: ["'none'"], // Disallow Flash/ActiveX
+                upgradeInsecureRequests: [], // Force HTTPS requests
             },
         }
-        : false, // Disable CSP in dev for ease of testing
-    crossOriginResourcePolicy: { policy: "same-origin" },
+        : false, // Disable CSP in development for convenience
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow fonts/images from CDN
     frameguard: { action: "deny" }, // Prevent clickjacking
     hsts: isProduction
-        ? { maxAge: 31536000, includeSubDomains: true, preload: true }
-        : undefined, // Enforce HTTPS in production
+        ? { maxAge: 31536000, includeSubDomains: true, preload: true } // Enforce HTTPS
+        : false,
+    referrerPolicy: { policy: "no-referrer" }, // Don't leak referer data
 }));
 
 // --------------------------------------------
-// ✅ CSRF Protection (enabled in production only)
+// ✅ Extra Security Headers (for OAuth popups)
 // --------------------------------------------
-const csrfProtection = true //isProduction
+app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff"); // Prevent MIME-type sniffing
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups"); // Required for Google OAuth popup
+    next();
+});
+
+// --------------------------------------------
+// ✅ CSRF Protection (enabled in production)
+// Prevents cross-site request forgery via cookies
+// --------------------------------------------
+const maybeCsrfProtection = isProduction
     ? csrf({ cookie: { httpOnly: true, sameSite: "strict", secure: true } })
-    : (req, res, next) => next(); // Disabled in dev for testing
+    : (req, res, next) => next(); // Disable in development
 
 
 // --------------------------------------------
-// ✅ API Routes
+// ✅ Define Routes
+// Public, protected, and role-specific
 // --------------------------------------------
 
-app.head('/', (req, res) => res.status(200).end());
+// Health check
+app.head("/", (req, res) => res.status(200).end());
 
-// Public user routes (with CSRF)
-app.use("/api/user", csrfProtection, userRoute);
+// Public user routes (register, login, etc.)
+app.use("/api/user", maybeCsrfProtection, userRoute);
 
-// Agent-only routes (auth → role → CSRF)
-app.use("/api/agent", authMiddleware, isAgent, csrfProtection, agentRoute);
+// Agent-only routes (require auth, agent role, and CSRF)
+app.use("/api/agent", authMiddleware, isAgent, maybeCsrfProtection, agentRoute);
 
-// Admin-only routes (auth → role → CSRF)
-app.use("/api/admin", authMiddleware, isAdmin, csrfProtection, adminRoute);
+// Admin-only routes (require auth, admin role, and CSRF)
+app.use("/api/admin", authMiddleware, isAdmin, maybeCsrfProtection, adminRoute);
 
 // --------------------------------------------
-// ✅ Global Error Handler (Always last)
+// ✅ Global Error Handler
+// Always register after all routes
 // --------------------------------------------
 app.use(handleError);
 
 // --------------------------------------------
 // ✅ Export App
+// Used by entry point or for testing
 // --------------------------------------------
 export { app, port, isProduction };
-
-//performance optimization, efficiency, maintainability, readability and security
