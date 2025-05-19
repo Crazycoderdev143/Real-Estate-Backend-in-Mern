@@ -12,10 +12,10 @@ import express from "express";
 const router = express.Router();
 
 
-// Route for send csrf-token to client
-router.get("/csrf-token", (req, res) => {
-    res.json({ csrfToken: req.csrfToken() });
-});
+// // Route for send csrf-token to client
+// router.get("/csrf-token", (req, res) => {
+//     res.json({ csrfToken: req.csrfToken() });
+// });
 
 // Route for generate otp for verify user to registration
 router.post("/gen-otp", signupValidation, loginLimiter, rateLimiter(), handleValidationErrors, genOtpForRegistration);

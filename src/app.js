@@ -68,7 +68,7 @@ app.use(cookieParser());
 
 // Extract user agent and device info
 app.use(useragent.express());
-app.use(deviceInfoMiddleware());
+app.use(deviceInfoMiddleware);
 
 // Compress all responses for better performance
 app.use(compression());
@@ -135,9 +135,9 @@ app.use((req, res, next) => {
 // ✅ CSRF Protection (enabled in production)
 // Prevents cross-site request forgery via cookies
 // --------------------------------------------
-const maybeCsrfProtection = isProduction
-    ? csrf({ cookie: { httpOnly: true, sameSite: "strict", secure: true } })
-    : (req, res, next) => next(); // Disable in development
+// const maybeCsrfProtection = isProduction
+//     ? csrf({ cookie: { httpOnly: true, sameSite: "strict", secure: true } })
+//     : (req, res, next) => next(); // Disable in development
 
 
 // --------------------------------------------
@@ -149,13 +149,13 @@ const maybeCsrfProtection = isProduction
 app.head("/", (req, res) => res.status(200).end());
 
 // Public user routes (register, login, etc.)
-app.use("/api/user", maybeCsrfProtection, userRoute);
+app.use("/api/user", userRoute);
 
 // Agent-only routes (require auth, agent role, and CSRF)
-app.use("/api/agent", authMiddleware, isAgent, maybeCsrfProtection, agentRoute);
+app.use("/api/agent", authMiddleware, isAgent, agentRoute);
 
 // Admin-only routes (require auth, admin role, and CSRF)
-app.use("/api/admin", authMiddleware, isAdmin, maybeCsrfProtection, adminRoute);
+app.use("/api/admin", authMiddleware, isAdmin, adminRoute);
 
 // --------------------------------------------
 // ✅ Global Error Handler
