@@ -142,7 +142,6 @@ export const getAllComment = async (req, res, next) => {
 
         const comments = await Comment.find({ propertyRef: propertyId });
         if (!comments.length) {
-            console.log("run")
             return res.status(404).json({ message: "No comments found.", success: false });
         }
 
