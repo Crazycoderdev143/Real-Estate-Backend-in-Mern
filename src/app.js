@@ -80,13 +80,25 @@ app.use(requestLogger);
 // ✅ CORS Setup
 // Allows secure cross-origin requests (cookies, headers)
 // --------------------------------------------
-app.use(cors({
-    origin: isProduction
-        ? [process.env.FRONTEND_URL, "https://real-estate-frontend-in-mern.onrender.com"]
-        : ["http://localhost:5173"],
+const corsOptions = {
+    origin: (origin, callback) => {
+        const allowedOrigins = isProduction
+            ? [process.env.FRONTEND_URL, "https://real-estate-frontend-in-mern.onrender.com"]
+            : ["http://localhost:5173"];
+
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // Allow cookies and headers across origins
-}));
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
 
 // --------------------------------------------
 // ✅ Helmet Security Headers
