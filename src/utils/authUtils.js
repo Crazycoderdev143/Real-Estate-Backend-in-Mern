@@ -32,7 +32,6 @@ export const recordFailedAttempt = async (identifier) => {
  * Optional function to clear failed attempts on successful login
  */
 export const resetFailedAttempts = async (usernameOrEmail) => {
-    console.log("resetFailedAttempts")
     try {
         const key = `failedAttempts:${usernameOrEmail}`;
         await redisClient.del(key); // Clear key after successful login
