@@ -244,7 +244,7 @@ export const forgetPassword = async (req, res, next) => {
 
 
         // Send the reset password email with the reset token
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
         const subject = 'Password Reset Request';
         const html = `
             <p>Hello ${user.username || user.email},</p>
