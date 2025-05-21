@@ -60,7 +60,7 @@ router.post("/addtocart/:userId", authMiddleware, isUser, addToCart);
 router.get("/cartitems/:userId", authMiddleware, isUser, getCartItems);
 
 //Route for get all item to the cart
-router.delete("/remove-property/:userId", removeFromCart);
+router.delete("/remove-property/:userId", authMiddleware, isUser, removeFromCart);
 
 //Route for register FCM token
 router.post("/reg-notify-token", registerFCMToken);
