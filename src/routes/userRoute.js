@@ -18,10 +18,10 @@ const router = express.Router();
 // });
 
 // Route for generate otp for verify user to registration
-router.post("/gen-otp", signupValidation, loginLimiter, rateLimiter(), handleValidationErrors, genOtpForRegistration);
+router.post("/gen-otp", signupValidation, loginLimiter, handleValidationErrors, genOtpForRegistration);
 
 // Route for verify otp and save user in database
-router.post("/verify-registration", signupValidation, rateLimiter(), handleValidationErrors, verifyOtpAndRegistration);
+router.post("/verify-registration", signupValidation,  handleValidationErrors, verifyOtpAndRegistration);
 
 // Route for user login
 router.post("/login", loginValidation, loginLimiter, rateLimiter(), handleValidationErrors, login);
@@ -33,7 +33,7 @@ router.post("/googlesignup", loginLimiter, signUpUserWithGoogle);
 router.post("/forget-password", loginLimiter, rateLimiter(), forgetPassword);
 
 // Route for user reset password by verify resetToken
-router.put('/reset-password/:resetToken', loginLimiter, rateLimiter(), resetPassword);
+router.put('/reset-password/:resetToken', loginLimiter, resetPassword);
 
 // Route for user delete your account
 router.delete('/deleteaccount', authMiddleware, isUser, deleteAccount);
